@@ -1,8 +1,8 @@
-#Writeup Vehicle Detection Project
+# Writeup Vehicle Detection Project
 
 The work for this project is divided into several notebooks. For this reason, this writeup serves more as a guide than as a container of solutions.
 
-##Histogram of Oriented Gradients (HOG)
+## Histogram of Oriented Gradients (HOG)
 
 The work done to obtain an histogram of oriented gradients is defined in the notebook [Vehicle Detection.ipnb](Vehicle%20Detection.ipynb).
 That notebook shows the first steps into exploring alternative parameters for the feature extraction.
@@ -31,7 +31,7 @@ I trained a linear SVM in the [Vehicle Detection notebook](Vehicle%20Detection.i
 It is explained in the notebook right before the code is executed in cell 8. For that training and later use, I set default values in aux_functions.py to improve readability.
 
 
-##Sliding Window Search
+## Sliding Window Search
 
 For the windows search I started by just sliding a fixed size window across the image, but only in the region of interest.
 As a first try, I set a size of 96x96 pixels for the window and an overlap of 50%. That did not seem to work well so I ended up going up to 75% overlap.
@@ -59,7 +59,7 @@ As I mention in the notebook, one measure that proved very effective
 was using the decision function of the classifier instead of the prediction. That is done again in aux_functions.py
 
 
-###Discussion
+### Discussion
 
 As I mentioned before, speed of the system seem to be slow.
 
