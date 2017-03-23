@@ -6,6 +6,23 @@ from sklearn.svm import LinearSVC
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
+#########################################
+# Default values obtained from test
+#########################################
+cspace_hog_def = 'YCrCb'   # Color space to use for hog feature extraction
+cspace_color_def = 'LUV'   # Color space to use for color features extraction
+spatial_def = 8            # Spatial binning, bins are spatial_def x spatial_def
+hist_bins_def = 32         # Number of bins for color histogram
+hist_range_def = (0, 256)  # Range of values of color
+orient_def = 10            # Number of orientations to consider for binning
+pix_def = 8                # Number of pixels per cell for HOG features
+cell_def = 2               # Number of cells per block for HOG features
+hog_def = 'ALL'            # Channels to use for HOG features
+#########################################
+# I should really have divided this file in several ones!
+
+########## Feature calculation functions ###################
+
 # Define a function to return HOG features and visualization
 def get_hog_features(img, orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True):
     # Call with two outputs if vis==True
@@ -26,7 +43,7 @@ def get_hog_features(img, orient, pix_per_cell, cell_per_block, vis=False, featu
         return features
 
 # Define a function to compute binned color features  
-def bin_spatial(img, size=(32, 32)):
+def bin_spatial(img, size=(spatial_def, spatial_def)):
     # Use cv2.resize().ravel() to create the feature vector
     features = cv2.resize(img, size).ravel() 
     # Return the feature vector
@@ -34,7 +51,7 @@ def bin_spatial(img, size=(32, 32)):
 
 # Define a function to compute color histogram features 
 # NEED TO CHANGE bins_range if reading .png files with mpimg!
-def color_hist(img, nbins=32, bins_range=(0, 256)):
+def color_hist(img, nbins=hist_bins_def, bins_range=hist_range_def):
     # Compute the histogram of the color channels separately
     channel1_hist = np.histogram(img[:,:,0], bins=nbins, range=bins_range)
     channel2_hist = np.histogram(img[:,:,1], bins=nbins, range=bins_range)
@@ -46,7 +63,9 @@ def color_hist(img, nbins=32, bins_range=(0, 256)):
 
 # This function is modified from the one in the lessons to account for the framework used for images
 # in this case, using cv2 to read images changes how it works as it reads in as BGR
-def extract_color_features(image, cspace='BGR', spatial_size=(32, 32), hist_bins=32, hist_range=(0, 256)):
+def extract_color_features(image, cspace=cspace_color_def,
+                           spatial_size=(spatial_def, spatial_def),
+                           hist_bins=hist_bins_def, hist_range=hist_range_def):
     if cspace != 'BGR':
         if cspace == 'HSV':
             feature_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -67,7 +86,9 @@ def extract_color_features(image, cspace='BGR', spatial_size=(32, 32), hist_bins
     # return both vector concatenated
     return np.concatenate((spatial_features, hist_features))
 
-def extract_HOG_features(image, cspace='BGR', orient=9, pix_per_cell=8, cell_per_block=2, hog_channel=0):
+def extract_HOG_features(image, cspace=cspace_hog_def, orient=orient_def,
+                         pix_per_cell=pix_def, cell_per_block=cell_def,
+                         hog_channel=hog_def):
     if cspace != 'BGR':
         if cspace == 'HSV':
             feature_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -98,9 +119,12 @@ def extract_HOG_features(image, cspace='BGR', orient=9, pix_per_cell=8, cell_per
 
 # This function extract features with separate color spaces for spatial binning/color histogram
 # and hog
-def extract_features(imgs, color_color_space='LUV', hog_color_space='YCrCb', spatial_size=(8, 8),
-                        hist_bins=32, orient=10, pix_per_cell=8, cell_per_block=2, hog_channel='ALL',
-                        color_feat=True, hog_feat=True):
+def extract_features(imgs, color_color_space=cspace_color_def,
+                     hog_color_space=cspace_hog_def,
+                     spatial_size=(spatial_def, spatial_def),
+                     hist_bins=hist_bins_def, orient=orient_def,
+                     pix_per_cell=pix_def, cell_per_block=cell_def,
+                     hog_channel=hog_def, color_feat=True, hog_feat=True):
     features = []
     # Iterate through the list of images      
     for file_name in imgs:
@@ -111,7 +135,7 @@ def extract_features(imgs, color_color_space='LUV', hog_color_space='YCrCb', spa
             image_color_feat = extract_color_features(image, cspace=color_color_space,
                                                       spatial_size=spatial_size,
                                                       hist_bins=hist_bins,
-                                                      hist_range=(0, 256))
+                                                      hist_range=hist_range_def)
             file_feat.append(image_color_feat)
         if hog_feat == True:
             image_hog_feat = extract_HOG_features(image, cspace=hog_color_space,
@@ -122,13 +146,16 @@ def extract_features(imgs, color_color_space='LUV', hog_color_space='YCrCb', spa
     # Return list of feature vectors
     return features
 
-def single_im_extract(img, color_color_space='LUV', hog_color_space='YCrCb', spatial_size=(8, 8),
-                        hist_bins=32, orient=10, pix_per_cell=8, cell_per_block=2, hog_channel='ALL',
-                        color_feat=True, hog_feat=True):
+def single_im_extract(img, color_color_space=cspace_color_def,
+                      hog_color_space=cspace_hog_def,
+                      spatial_size=(spatial_def, spatial_def),
+                      hist_bins=hist_bins_def, orient=orient_def,
+                      pix_per_cell=pix_def, cell_per_block=cell_def,
+                      hog_channel=hog_def, color_feat=True, hog_feat=True):
     image_feat = []
     if color_feat == True:
         image_color_feat = extract_color_features(img, cspace=color_color_space, spatial_size=spatial_size,
-                                                  hist_bins=hist_bins, hist_range=(0, 256))
+                                                  hist_bins=hist_bins, hist_range=hist_range_def)
         image_feat.append(image_color_feat)
     if hog_feat == True:
         image_hog_feat = extract_HOG_features(img, cspace=hog_color_space, orient=orient,
@@ -138,9 +165,14 @@ def single_im_extract(img, color_color_space='LUV', hog_color_space='YCrCb', spa
     # return image features with the required shape for a single sample
     return np.concatenate(image_feat).reshape(1, -1)
    
-def svm_car_classifier(cars, notcars, color_color_space='LUV', hog_color_space='YCrCb', spatial=8,
-                       hist_bins=32, orient=10, pix_per_cell=8, cell_per_block=2, hog_channel='ALL',
-                       color_feat=True, hog_feat=True, seed=np.random.randint(0, 100)):
+########## Classifier calculation functions ###################
+
+def svm_car_classifier(cars, notcars, color_color_space=cspace_color_def,
+                       hog_color_space=cspace_hog_def, spatial=spatial_def,
+                       hist_bins=hist_bins_def, orient=orient_def,
+                       pix_per_cell=pix_def, cell_per_block=cell_def,
+                       hog_channel=hog_def, color_feat=True, hog_feat=True,
+                       seed=np.random.randint(0, 100)):
     ''' Takes in a list of files representing car and no car images together with parametes for
     feature straction. Returns the fitted model and its score
     '''
@@ -179,6 +211,7 @@ def svm_car_classifier(cars, notcars, color_color_space='LUV', hog_color_space='
     print('Test Accuracy of SVC = ', round(score, 4))
     return svc, X_scaler, score
 
+########## Sliding window and car finding functions ###################
 
 def slide_window(img, x_start_stop=[None, None], y_start_stop=[None, None], 
                     xy_window=(64, 64), xy_overlap=(0.5, 0.5)):
@@ -227,3 +260,104 @@ def draw_boxes(img, bboxes, color=(0, 0, 255), thick=6):
         cv2.rectangle(imcopy, bbox[0], bbox[1], color, thick)
     # Return the image copy with boxes drawn
     return imcopy
+
+# Function to find cars in an image. Returns a list of boxes
+def find_cars(img, ystart, ystop, scale, classifier, scaler, orient=orient_def,
+              pix_per_cell=pix_def, cell_per_block=cell_def):
+    detect_boxes = []
+    draw_img = np.copy(img)
+    
+    img_tosearch = img[ystart:ystop,:,:]
+    # I read the image with cv2.
+    # YCrCb is hardcoded here as it is what I used for the classifier for hog features != colorspace for colors
+    ctrans_tosearch = cv2.cvtColor(img_tosearch, cv2.COLOR_BGR2YCrCb)
+    if scale != 1:
+        imshape = ctrans_tosearch.shape
+        ctrans_tosearch = cv2.resize(ctrans_tosearch, (np.int(imshape[1]/scale), np.int(imshape[0]/scale)))
+        img_tosearch = cv2.resize(img_tosearch, (np.int(imshape[1]/scale), np.int(imshape[0]/scale)))
+        
+    ch1 = ctrans_tosearch[:,:,0]
+    ch2 = ctrans_tosearch[:,:,1]
+    ch3 = ctrans_tosearch[:,:,2]
+    # Compute individual channel HOG features for the entire image
+    hog1 = get_hog_features(ch1, orient, pix_per_cell, cell_per_block, feature_vec=False)
+    hog2 = get_hog_features(ch2, orient, pix_per_cell, cell_per_block, feature_vec=False)
+    hog3 = get_hog_features(ch3, orient, pix_per_cell, cell_per_block, feature_vec=False)
+
+    # Define blocks and steps as above
+    nxblocks = (ch1.shape[1] // pix_per_cell)-1
+    nyblocks = (ch1.shape[0] // pix_per_cell)-1 
+    nfeat_per_block = orient*cell_per_block**2
+    # 64 is the sampling rate for a scale of 1
+    window = 64
+    nblocks_per_window = (window // pix_per_cell)-1 
+    cells_per_step = 2  # Instead of overlap, define how many cells to step
+    nxsteps = (nxblocks - nblocks_per_window) // cells_per_step
+    nysteps = (nyblocks - nblocks_per_window) // cells_per_step
+
+    for xb in range(nxsteps):
+        for yb in range(nysteps):
+            ypos = yb*cells_per_step
+            xpos = xb*cells_per_step
+            # Extract HOG for this patch
+            hog_feat1 = hog1[ypos:ypos+nblocks_per_window, xpos:xpos+nblocks_per_window].ravel() 
+            hog_feat2 = hog2[ypos:ypos+nblocks_per_window, xpos:xpos+nblocks_per_window].ravel() 
+            hog_feat3 = hog3[ypos:ypos+nblocks_per_window, xpos:xpos+nblocks_per_window].ravel() 
+            hog_features = np.hstack((hog_feat1, hog_feat2, hog_feat3))
+
+            xleft = xpos*pix_per_cell
+            ytop = ypos*pix_per_cell
+
+            # Extract the image patch. Use orginal image!!! color space convertion is done during
+            # feature extraction since it uses a different color space
+            subimg = cv2.resize(img_tosearch[ytop:ytop+window, xleft:xleft+window], (64,64))
+            # Get color features. Using default values hardcoded
+            color_features = extract_color_features(subimg)
+
+            # Scale features and make a prediction
+            test_features = scaler.transform(np.hstack((color_features, hog_features)).reshape(1, -1))
+            #test_prediction = classifier.predict(test_features)
+            # Using decision function + threshold instead of predict
+            test_prediction = classifier.decision_function(test_features)
+
+            if test_prediction > 0.9:
+            #if test_prediction == 1:
+                xbox_left = np.int(xleft*scale)
+                ytop_draw = np.int(ytop*scale)
+                win_draw = np.int(window*scale)
+                detect_boxes.append(((xbox_left, ytop_draw+ystart),(xbox_left+win_draw,ytop_draw+win_draw+ystart)))        
+    return detect_boxes
+
+########## Heat map and filtering functions ###################
+def add_heat(heatmap, bbox_list):
+    # Iterate through list of bboxes
+    for box in bbox_list:
+        # Add += 1 for all pixels inside each bbox
+        # Assuming each "box" takes the form ((x1, y1), (x2, y2))
+        heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += 1
+
+    # Return updated heatmap
+    return heatmap# Iterate through list of bboxes
+    
+def apply_threshold(heatmap, threshold):
+    # Zero out pixels below the threshold
+    heatmap[heatmap <= threshold] = 0
+    # Return thresholded map
+    return heatmap
+
+def draw_labeled_bboxes(img, labels):
+    # Iterate through all detected cars
+    for car_number in range(1, labels[1]+1):
+        # Find pixels with each car_number label value
+        nonzero = (labels[0] == car_number).nonzero()
+        # Identify x and y values of those pixels
+        nonzeroy = np.array(nonzero[0])
+        nonzerox = np.array(nonzero[1])
+        # Define a bounding box based on min/max x and y
+        bbox = ((np.min(nonzerox), np.min(nonzeroy)), (np.max(nonzerox), np.max(nonzeroy)))
+        # Draw the box on the image
+        cv2.rectangle(img, bbox[0], bbox[1], (0,0,255), 6)
+    # Return the image
+    return img
+
+
